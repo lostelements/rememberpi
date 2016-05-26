@@ -1,0 +1,126 @@
+
+import datetime
+import RPi.GPIO as GPIO
+from time import sleep
+
+# Define the start week
+startdate = datetime.date(2016,5,2)
+
+# Define the led 4 led pins
+blackled = 18
+greenled = 17
+brownled = 22
+patchled = 23
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+GPIO.setup(blackled,GPIO.OUT)
+GPIO.setup(greenled,GPIO.OUT)
+GPIO.setup(brownled,GPIO.OUT)
+GPIO.setup(patchled,GPIO.OUT)
+
+
+# Define  the button  pin
+GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(19, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(20, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(26, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+
+#Define the 4 varibles for the timings
+# array   colour,day, wwekly bi or monthly, time day monday=1
+recycle = [greenled,3,'FT',17,'recycle']
+rubbish = [blackled,3,'SF',17,'rubbish']
+garden = [brownled,4,'FT',17,'garden']
+patch1 = [patchled,1,'W',17,'patch1']
+patch2 = [patchled,4,'W',17,'patch2']
+whatled =[recycle,rubbish,garden,patch1,patch2]
+           
+# Turn on Each Led witrh a 2 second gap in between then turn off
+GPIO.output(blackled,GPIO.HIGH)
+sleep(2)
+GPIO.output(greenled,GPIO.HIGH)
+sleep(2)
+GPIO.output(brownled,GPIO.HIGH)
+sleep(2)
+GPIO.output(patchled,GPIO.HIGH)
+sleep(2)
+GPIO.output(blackled,GPIO.LOW)
+sleep(2)
+GPIO.output(greenled,GPIO.LOW)
+sleep(2)
+GPIO.output(brownled,GPIO.LOW)
+sleep(2)
+GPIO.output(patchled,GPIO.LOW)
+
+# defiune the led off function
+def turn_off(channel):
+    if (channel == 16):
+        #turn off led
+        GPIO.output(blackled,GPIO.LOW)
+    elif (channel == 19):
+        GPIO.output(greenled,GPIO.LOW)
+    elif (channel == 20):
+        GPIO.output(brownled,GPIO.LOW)
+    else:
+        GPIO.output(patchled,GPIO.LOW)
+        
+    
+
+# add the event detect
+GPIO.add_event_detect(16, GPIO.FALLING, callback=turn_off, bouncetime=200)
+GPIO.add_event_detect(19, GPIO.FALLING, callback=turn_off, bouncetime=200)
+GPIO.add_event_detect(20, GPIO.FALLING, callback=turn_off, bouncetime=200)
+GPIO.add_event_detect(26, GPIO.FALLING, callback=turn_off, bouncetime=200)
+
+
+
+
+
+def main():
+# main loop
+    startloop = 1
+    while (startloop == 1) :
+# get the current tie  (now)
+               nowtime = datetime.datetime.now()
+               nowdate = datetime.date.today()
+               nowweekday = nowdate.isoweekday()
+               #Calculate the number of weeks
+               monday1 = (startdate - datetime.timedelta(days=startdate.weekday()))
+               monday2 = (nowdate - datetime.timedelta(days=nowdate.weekday()))
+               weekcount= (monday2 - monday1).days / 7
+               nowday = nowdate.day
+               nowhour = nowtime.hour
+               howmany = len(whatled)
+               count = 0
+               print (nowhour,nowday,howmany,weekcount)
+               while ( count < howmany):
+                   
+# check if day and hour are correct
+                
+                 if (whatled[count][1] == nowday) and (whatled[count][3] == nowhour):
+#rtest is led already on (1 = off)
+                     if (GPIO.input(whatled[count][0]) == 1):
+                         if (whatled[count][2] == "W"):
+                             #every week
+                             GPIO.output(whatled[count][0],GPIO.HIGH)
+                         elif (weekcount % 2 == 0):
+                             #even weeks
+                             GPIO.output(whatled[count][0],GPIO.HIGH)
+                         else:
+                             #odd weeks
+                             GPIO.output(whatled[count][0],GPIO.HIGH)
+                             
+#test for the correct week now using odd and even weeks
+# trurn led on
+# set deetect button
+                    
+                 count=count+1
+                    
+# wait 1 hour before retesting
+               sleep(3600)
+           
+	
+    return 0
+
+if __name__ == '__main__':
+    main()
