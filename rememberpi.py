@@ -28,10 +28,10 @@ GPIO.setup(26, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 #Define the 4 varibles for the timings
 # array   colour,day, wwekly bi or monthly, time day monday=1
-recycle = [greenled,7,'FT',10,'recycle']
-rubbish = [blackled,7,'SF',10,'rubbish']
-garden = [brownled,7,'FT',11,'garden']
-patch1 = [patchled,1,'W',9,'patch1']
+recycle = [greenled,7,'EV',12,'recycle']
+rubbish = [blackled,7,'OD',12,'rubbish']
+garden = [brownled,7,'EV',17,'garden']
+patch1 = [patchled,1,'W',17,'patch1']
 patch2 = [patchled,7,'W',12,'patch2']
 whatled =[recycle,rubbish,garden,patch1,patch2]
            
@@ -107,15 +107,18 @@ def main():
 #rtest is led already on (1 = off)
                      print ("got hour")
                      if (GPIO.input(whatled[count][0]) == 0):
-                         print ("led off")
+                         
                          if (whatled[count][2] == "W"):
                              #every week
+                             print ("weekly")
                              GPIO.output(whatled[count][0],GPIO.HIGH)
                          elif (weekcount % 2 == 0):
                              #even weeks
+                             print ("even")
                              GPIO.output(whatled[count][0],GPIO.HIGH)
-                         else:
+                         elif (whatled[count][2] == "OD"):
                              #odd weeks
+                             print ("odd")
                              GPIO.output(whatled[count][0],GPIO.HIGH)
                              
 #test for the correct week now using odd and even weeks
